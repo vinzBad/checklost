@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+		<script src="static/Sortable.min.js" > </script>
+		<script>
+		window.addEventListener("load", function(evt) {
+			var log = document.getElementById("log");
+			var input = document.getElementById("input");
+			var status = document.getElementById("status");
+
+			var ws;
+
+			var print = function(message) {
+				var d = document.createElement("li");
+				d.innerHTML = message;
+				log.appendChild(d);
+			};
+			ws = new WebSocket("ws://{{.Addr}}/ws");
+			
+			ws.onopen = function(evt) {
+				status.innerHTML = "Connected";
+			};
+
+			ws.onclose = function(evt) {
+				status.innerHTML = "Connection closed";
+			};
+
+			ws.onmessage = function(evt) {
+				print(evt.data);
+			};
+
+			ws.onerror = function(evt) {
+				print("ERR: ", + evt.data);
+			};
+
+			document.getElementById("send").onclick = function(evt) {
+				//print("SND: " + input.value);
+				ws.send(input.value);
+				return;
+
+			};
+			var tasks = document.getElementById("tasks");
+			var sortable = Sortable.create(tasks);
+		});
+	
+	 	
+		</script>
+		<style>
+		.task {
+		  	border: solid 2px;
+		    	margin: 0px;
+		    	padding: 2px;
+		}
+
+		.done {
+	  		background-color: green;
+		}
+
+		.progress {
+	  		background-color: red;
+		}
+
+		.sortable-chosen {
+			opacity: 0.4;
+		}
+		.sortable-ghost {
+			opacity: 0.6;
+		}
+		</style>
+	</head>
+	<body>
+		<h1> checklost </h1>
+		<h2> tasks </h2>
+		<div id="tasks">
+		{{ range .Tasks }}
+			{{ if .Done }}
+			<p id="task{{.Id}}" class="task done"> {{ .Name }} </p>
+			{{ else }}
+			<p id="task{{.Id}}" class="task progress"> {{ .Name }} </p> 
+			{{ end }}
+		{{ end }}
+		</div>
+		<h2> status </h2>
+		<div id="status"> Not Connected </div>  
+		<h2> ping </h2>
+		<form>
+			<label for="input">Input:</label>
+			<input id="input" type="text">
+			<input id="send" value="Send" type="button">
+		</form>
+		<h2> log </h2>
+		<ul id="log">
+		</ul>
+	</body>
+</html>
+
